@@ -292,7 +292,11 @@ GNEPoly::drawGL(const GUIVisualizationSettings& s) const {
                 // Change color of vertex and flag mouseOverVertex if mouse is over vertex
                 if (modeMove && (i.distanceTo(mousePosition) < myHintSize)) {
                     mouseOverVertex = true;
-                    GLHelper::setColor(invertedColor);
+                    if (myNetElementShapeEdited->getType() == GLO_CONNECTION &&
+                        (i == myShape.front() || i == myShape.back()))
+                        GLHelper::setColor(darkerColor);
+                    else
+                        GLHelper::setColor(invertedColor);
                 } else {
                     GLHelper::setColor(darkerColor);
                 }

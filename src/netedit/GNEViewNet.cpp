@@ -1095,6 +1095,12 @@ GNEViewNet::onMouseMove(FXObject* obj, FXSelector sel, void* eventData) {
             // move shape's geometry without commiting changes
             if (myPolyToMove->isShapeBlocked()) {
                 myPolyToMove->moveEntireShape(myMovingOriginalShape, offsetMovement);
+            // do not allow editing start and end of (internal) connections
+            } else if (myPolyToMove->getShapeEditedElement()->getType() == GLO_CONNECTION) {
+                if (myMovingIndexShape > 0 && myMovingIndexShape < myPolyToMove->getShape().size() - 1) {
+                    myMovingIndexShape = myPolyToMove->moveVertexShape(myMovingIndexShape, myMovingOriginalPosition,
+                                                                       offsetMovement);
+                }
             } else {
                 myMovingIndexShape = myPolyToMove->moveVertexShape(myMovingIndexShape, myMovingOriginalPosition, offsetMovement);
             }
