@@ -72,6 +72,7 @@ GNEConnection::GNEConnection(GNELane* from, GNELane* to) :
     myFromLane(from),
     myToLane(to),
     myLinkState(LINKSTATE_TL_OFF_NOSIGNAL) {
+    myJunctionPosition = getJunction()->getPositionInView();
     // geometry will be updated later
 }
 
@@ -102,6 +103,8 @@ GNEConnection::updateGeometry() {
     // value obtanied from GNEJunction::drawgl
     if (nbCon.customShape.size() != 0) {
         myShape = nbCon.customShape;
+        myShape[0] = laneShapeFrom.back();
+        myShape[myShape.size()-1]=laneShapeTo.front();
     } else if (getEdgeFrom()->getNBEdge()->getToNode()->getShape().area() > 4) {
         if (nbCon.shape.size() != 0) {
             myShape = nbCon.shape;
@@ -459,6 +462,42 @@ GNEConnection::setAttribute(SumoXMLAttr key, const std::string& value) {
         default:
             throw InvalidArgument(toString(getTag()) + " doesn't have an attribute of type '" + toString(key) + "'");
     }
+}
+
+void
+GNEConnection::moveGeometry(Position &newPosition) {
+    NBEdge::Connection &nbCon = getNBEdgeConnection();
+    PositionVector laneShapeFrom;
+    if ((int)getEdgeFrom()->getNBEdge()->getLanes().size() > nbCon.fromLane) {
+        laneShapeFrom = getEdgeFrom()->getNBEdge()->getLanes().at(nbCon.fromLane).shape;
+    } else {
+        return;
+    }
+    PositionVector laneShapeTo;
+    if ((int)nbCon.toEdge->getLanes().size() > nbCon.toLane) {
+        laneShapeTo = nbCon.toEdge->getLanes().at(nbCon.toLane).shape;
+    } else {
+        return;
+    }
+
+    if (nbCon.customShape.size() > 0) {
+        nbCon.customShape.add(newPosition - myJunctionPosition);
+        //nbCon.customShape[0] = laneShapeFrom.back();
+        //nbCon.customShape[nbCon.customShape.size()-1] = laneShapeTo.front();
+    } else if (nbCon.shape.size() > 0) {
+        nbCon.shape.add(newPosition - myJunctionPosition);
+        //nbCon.shape[0] = laneShapeFrom.back();
+        //nbCon.shape[nbCon.shape.size()-1] = laneShapeTo.front();
+    }
+    myJunctionPosition=newPosition;
+    updateGeometry();
+}
+
+GNEJunction *
+GNEConnection::getJunction() {
+    GNEJunction *j1 = getEdgeFrom()->getGNEJunctionDestiny();
+    GNEJunction *j2 = getEdgeTo()->getGNEJunctionSource();
+    if (j1 == j2) return j1;
 }
 
 

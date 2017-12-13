@@ -30,6 +30,7 @@
 #endif
 
 #include "GNENetElement.h"
+#include "GNEJunction.h"
 
 // ===========================================================================
 // class declarations
@@ -143,6 +144,12 @@ public:
     bool isValid(SumoXMLAttr key, const std::string& value);
     /// @}
 
+    /**
+     * @brief method for moving customShape (or shape) when moving junction containing this connection
+     * @param newPos new position of the junction containing this connection
+     */
+    void moveGeometry(Position &newPos);
+
 protected:
     /// @brief incoming lane of this connection
     GNELane* myFromLane;
@@ -177,6 +184,12 @@ private:
 
     /// @brief Invalidated assignment operator.
     GNEConnection& operator=(const GNEConnection&) = delete;
+
+    /// @brief return junction containing this
+    GNEJunction *getJunction();
+
+    /// @brief position of the junction containing this connection to update (custom) shapes when moving junction
+    Position myJunctionPosition;
 };
 
 

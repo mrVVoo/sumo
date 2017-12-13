@@ -460,6 +460,8 @@ GNEJunction::moveGeometry(const Position & oldPos, const Position & offset) {
         Position newPosition = oldPos;
         newPosition.add(offset);
         moveJunctionGeometry(newPosition);
+        for (auto it : getGNEConnections())
+            it->moveGeometry(newPosition);
     }
 }
 
