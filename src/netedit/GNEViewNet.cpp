@@ -362,7 +362,7 @@ GNEViewNet::changeAllPhases() const {
 
 bool
 GNEViewNet::showJunctionAsBubbles() const {
-    return (myEditMode == GNE_MODE_MOVE) && (myMenuCheckShowBubbleOverJunction->getCheck());
+    return (myMenuCheckShowBubbleOverJunction->getCheck());
 }
 
 
@@ -2366,15 +2366,7 @@ GNEViewNet::setEditMode(EditMode mode) {
         }
     } else {
         myEditMode = mode;
-        switch (mode) {
-            case GNE_MODE_CONNECT:
-            case GNE_MODE_TLS:
-                // modes which depend on computed data
-                myNet->computeEverything((GNEApplicationWindow*)myApp);
-                break;
-            default:
-                break;
-        }
+        myNet->computeEverything((GNEApplicationWindow*)myApp);
         updateModeSpecificControls();
     }
 }
@@ -2489,6 +2481,7 @@ GNEViewNet::updateModeSpecificControls() {
             myMenuCheckWarnAboutMerge->show();
             myMenuCheckShowBubbleOverJunction->show();
             myMenuCheckMoveElevation->show();
+            myMenuCheckShowConnections->show();
             myEditModeMove->setChecked(true);
             myMenuCheckShowGrid->show();
             break;
