@@ -334,6 +334,8 @@ bool
 GNEViewNet::showConnections() {
     if (myEditMode == GNE_MODE_CONNECT) {
         return true;
+    } else if (myEditMode == GNE_MODE_MOVE && (myJunctionToMove || myEdgeToMove)) {
+        return false;
     } else if (myMenuCheckShowConnections->shown() == false) {
         return false;
     } else {

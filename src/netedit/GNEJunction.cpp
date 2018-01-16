@@ -476,6 +476,8 @@ GNEJunction::commitGeometryMoving(const Position& oldPos, GNEUndoList* undoList)
         // tried to set an invalid position, revert back to the previous one
         moveJunctionGeometry(oldPos);
     }
+    OptionsCont& oc = OptionsCont::getOptions();
+    myNet->computeAndUpdate(oc, false);
 }
 
 
