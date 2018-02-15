@@ -144,11 +144,9 @@ public:
     bool isValid(SumoXMLAttr key, const std::string& value);
     /// @}
 
-    /**
-     * @brief method for moving customShape (or shape) when moving junction containing this connection
-     * @param newPos new position of the junction containing this connection
-     */
-    void moveGeometry(Position &newPos);
+    void moveGeometry(const Position &newPos);
+
+    void commitGeometryMoving(const Position &oldPos, GNEUndoList *undoList);
 
 protected:
     /// @brief incoming lane of this connection
@@ -188,8 +186,11 @@ private:
     /// @brief return junction containing this
     GNEJunction *getJunction();
 
-    /// @brief position of the junction containing this connection to update (custom) shapes when moving junction
     Position myJunctionPosition;
+
+    bool myIsMoving;
+
+    PositionVector myOldShape;
 };
 
 

@@ -67,13 +67,14 @@ int NUM_POINTS = 5;
 // ===========================================================================
 
 GNEConnection::GNEConnection(GNELane* from, GNELane* to) :
-    GNENetElement(from->getNet(), "from" + from->getMicrosimID() + "to" + to->getMicrosimID(),
-                  GLO_CONNECTION, SUMO_TAG_CONNECTION, ICON_CONNECTION),
-    myFromLane(from),
-    myToLane(to),
-    myLinkState(LINKSTATE_TL_OFF_NOSIGNAL) {
-    myJunctionPosition = getJunction()->getPositionInView();
+        GNENetElement(from->getNet(), "from" + from->getMicrosimID() + "to" + to->getMicrosimID(),
+                      GLO_CONNECTION, SUMO_TAG_CONNECTION, ICON_CONNECTION),
+        myFromLane(from),
+        myToLane(to),
+        myLinkState(LINKSTATE_TL_OFF_NOSIGNAL), myIsMoving(false) {
     // geometry will be updated later
+    myJunctionPosition = getJunction()->getPositionInView();
+    myOldShape = getShape();
 }
 
 
@@ -465,7 +466,7 @@ GNEConnection::setAttribute(SumoXMLAttr key, const std::string& value) {
 }
 
 void
-GNEConnection::moveGeometry(Position &newPosition) {
+GNEConnection::moveGeometry(const Position &newPos) {
     NBEdge::Connection &nbCon = getNBEdgeConnection();
     PositionVector laneShapeFrom;
     if ((int)getEdgeFrom()->getNBEdge()->getLanes().size() > nbCon.fromLane) {
@@ -480,16 +481,18 @@ GNEConnection::moveGeometry(Position &newPosition) {
         return;
     }
 
-    if (nbCon.customShape.size() > 0) {
-        nbCon.customShape.add(newPosition - myJunctionPosition);
-        //nbCon.customShape[0] = laneShapeFrom.back();
-        //nbCon.customShape[nbCon.customShape.size()-1] = laneShapeTo.front();
-    } else if (nbCon.shape.size() > 0) {
-        nbCon.shape.add(newPosition - myJunctionPosition);
-        //nbCon.shape[0] = laneShapeFrom.back();
-        //nbCon.shape[nbCon.shape.size()-1] = laneShapeTo.front();
+    if (!myIsMoving) {
+        myOldShape = getShape();
+        myIsMoving = true;
     }
-    myJunctionPosition=newPosition;
+
+    if (nbCon.customShape.size() > 0) {
+        // move original shape
+        nbCon.customShape.add(newPos - myJunctionPosition);
+    } else if (nbCon.shape.size() > 0) {
+        // nothing to do, will be recomputed
+    }
+    myJunctionPosition = newPos;
     updateGeometry();
 }
 
@@ -498,6 +501,22 @@ GNEConnection::getJunction() {
     GNEJunction *j1 = getEdgeFrom()->getGNEJunctionDestiny();
     GNEJunction *j2 = getEdgeTo()->getGNEJunctionSource();
     if (j1 == j2) return j1;
+}
+
+void
+GNEConnection::commitGeometryMoving(const Position &oldPos, GNEUndoList *undoList) {
+    if (getNBEdgeConnection().customShape.size() == 0) return; // only save custom shapes!
+    if (isValid(SUMO_ATTR_CUSTOMSHAPE, toString(myShape))) {
+        undoList->p_begin("position of " + toString(getTag()));
+        undoList->p_add(new GNEChange_Attribute(this, SUMO_ATTR_CUSTOMSHAPE, toString(myShape), true,
+                                                toString(myOldShape)));
+        undoList->p_end();
+    } else {
+        // tried to set an invalid position, revert back to the previous one
+        moveGeometry(oldPos);
+    }
+    myIsMoving = false;
+    myNet->requireRecompute();
 }
 
 

@@ -645,7 +645,7 @@ GNELane::updateGeometry() {
     for (auto i : myAdditionalChilds) {
         i->updateGeometry();
     }
-    // Update geometry of additionals àremtvinculated with this lane
+    // Update geometry of additionals ï¿½remtvinculated with this lane
     for (auto i : myAdditionalParents) {
         i->updateGeometry();
     }
